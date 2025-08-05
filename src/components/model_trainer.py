@@ -56,20 +56,55 @@ class ModelTrainer:
                     "CatBoosting Classifier": CatBoostRegressor(verbose=False),
                     "AdaBoost Classifier" : AdaBoostRegressor(),
                 }
+            
+            params = {
+                    "DecisionTreeRegressor": {
+                        "criterion": ["squared_error", "friedman_mse"],  # default modern options
+                        "max_depth": [None, 5, 10]
+                    },
+                    "RandomForestRegressor": {
+                        "n_estimators": [50, 100],
+                        "max_depth": [None, 10]
+                    },
+                    "Gradient Boosting": {
+                        "learning_rate": [0.01, 0.1],
+                        "n_estimators": [100, 200]
+                    },
+                    "Linear Regression": {},  # no major params usually tuned
+                    "K-Neighbors Classifier": {
+                        "n_neighbors": [3, 5, 7]
+                    },
+                    "XGBClassifier": {
+                        "n_estimators": [100, 200],
+                        "learning_rate": [0.01, 0.1]
+                    },
+                    "CatBoosting Classifier": {
+                        "depth": [4, 6],
+                        "learning_rate": [0.01, 0.1]
+                    },
+                    "AdaBoost Classifier": {
+                        "n_estimators": [50, 100],
+                        "learning_rate": [0.01, 0.1]
+                    }
+                }
 
-            model_report: dict = evaluate_model(
-                x_train= X_train,
+
+
+            model_report, best_params_report, best_estimators = evaluate_model(
+                x_train=X_train,
                 y_train=y_train,
                 x_test=X_test,
                 y_test=y_test,
-                models =models)
+                models=models,
+                params=params
+            )
+            
+            
+            
+            best_model_name = max(model_report, key=model_report.get)
+            best_model_score = model_report[best_model_name]
+            best_model = best_estimators[best_model_name]
 
-            best_model_score = max(sorted(model_report.values()))
-
-            best_model_name = list(model_report.keys())[
-                        list(model_report.values()).index(best_model_score)
-                    ]
-            best_model = models[best_model_name]
                     
             if best_model_score < 0.6:
                         raise CustomException(
